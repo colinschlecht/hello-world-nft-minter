@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
+import { connectWallet } from "./utils/interact.js";
 
 const Minter = (props) => {
-
   //State variables
   const [isConnected, setConnectedStatus] = useState(false);
   const [walletAddress, setWallet] = useState("");
@@ -9,17 +9,42 @@ const Minter = (props) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [url, setURL] = useState("");
- 
-  useEffect(async () => { //TODO: implement
-    
+
+  useEffect(async () => {
+    if (window.ethereum) {
+      //if Metamask installed
+      try {
+        const accounts = await window.ethereum.request({
+          method: "eth_accounts",
+        }); //get Metamask wallet
+        if (accounts.length) {
+          //if a Metamask account is connected
+          setConnectedStatus(true);
+          setWallet(accounts[0]);
+        } else {
+          setConnectedStatus(false);
+          setStatus("🦊 Connect to Metamask using the top right button.");
+        }
+      } catch {
+        setConnectedStatus(false);
+        setStatus(
+          "🦊 Connect to Metamask using the top right button. " + walletAddress
+        );
+      }
+    }
   });
 
-  const connectWalletPressed = async () => { //TODO: implement
-   
+  const connectWalletPressed = async () => {
+    const walletResponse = await connectWallet();
+    setConnectedStatus(walletResponse.connectedStatus);
+    setStatus(walletResponse.status);
+    if (isConnected) {
+      setWallet(walletAddress);
+    }
   };
 
-  const onMintPressed = async () => { //TODO: implement
-    
+  const onMintPressed = async () => {
+    //TODO: implement
   };
 
   return (
@@ -63,9 +88,7 @@ const Minter = (props) => {
       <button id="mintButton" onClick={onMintPressed}>
         Mint NFT
       </button>
-      <p id="status">
-        {status}
-      </p>
+      <p id="status">{status}</p>
     </div>
   );
 };
